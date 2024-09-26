@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <computer_group>
+    <name>Mann Consulting - Last Full Inventory = Pass</name>
+    <is_smart>true</is_smart>
+    <criteria>
+    <size>2</size>
+    <criterion>
+      <name>Mann Consulting - Last Full Inventory</name>
+      <priority>0</priority>
+      <and_or>and</and_or>
+      <search_type>less than x days ago</search_type>
+      <value>15</value>
+      <opening_paren>false</opening_paren>
+      <closing_paren>false</closing_paren>
+    </criterion>
+    <criterion>
+      <name>Last Check-in</name>
+      <priority>1</priority>
+      <and_or>and</and_or>
+      <search_type>less than x days ago</search_type>
+      <value>14</value>
+      <opening_paren>false</opening_paren>
+      <closing_paren>false</closing_paren>
+    </criterion>
+  </criteria>
+  </computer_group>

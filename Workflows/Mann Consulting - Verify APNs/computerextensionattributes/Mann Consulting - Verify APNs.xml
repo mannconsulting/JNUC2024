@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <computer_extension_attribute>
+    <name>Mann Consulting - Verify APNs</name>
+    <enabled>true</enabled>
+    <description>This script is part of Mann Consulting's Jamf Pro Workflows and has been distributed to the public as part of our JNUC 2024 presentation. It is freely available for use by the community under the condition that it is provided “as is,” without any form of support, warranty, or guarantee of functionality, security, or fitness for any specific purpose. Mann Consulting disclaims any and all liability for any damages, losses, or legal claims arising from the use, misuse, or inability to use this script. Users assume full responsibility for testing, deploying, and managing this script in their own environments. For updates or support options, please visit https://mann.com/jamf or contact us at support@mann.com.</description>
+    <data_type>date</data_type>
+    <input_type>
+      <type>script</type>
+      <platform>Mac</platform>
+      <script>#!/bin/zsh
+        ###############################################################################
+        # Name:     Mann Consulting - Verify APNs
+        # Creator:  Mann Consulting
+        # Summary:  Extension Attribute to detect if APNs is working correctly.
+        ##
+        # Usage:    Install as a date based Extension Attribute
+        #
+        # Errors:   Output is date based, if a specific error is found then the following date and time will be used to identify them:
+        #           2000-01-01 00:00:01 - Unknown Error
+        #           2000-01-01 00:00:02 - MDM Profile not found - The computer must be enrolled manually.
+        #           2000-01-01 00:00:03 - Client identity certificate missing from /Library/Keychains/System.keychain - The computer must be re-enrolled manually.
+        #           2000-01-01 00:00:04 - Client identity certificate expired from from /Library/Keychains/System.keychain - The computer must be re-enrolled manually.
+        #
+        #
+        # Notice:   This script is part of Mann Consulting's Jamf Pro Workflows and has been distributed to the public as part of our JNUC 2024 presentation.
+        #           It is freely available for use by the community under the condition that it is provided “as is,” without any form of support, warranty, or guarantee of functionality, security, or fitness for any specific purpose.
+        #           Mann Consulting disclaims any and all liability for any damages, losses, or legal claims arising from the use, misuse, or inability to use this script. Users assume full responsibility for testing, deploying, and managing this script in their own environments.
+        #
+        #           For updates or support options, please visit https://mann.com/jamf or contact us at support@mann.com.
+        #
+        ###############################################################################
+
+        enrolledState=$(/usr/bin/profiles status -type enrollment | grep "MDM enrollment" | cut -d ' ' -f3)
+        if [[ $enrolledState == "No" ]]; then
+          echo "&lt;result&gt;2000-01-01 00:00:02&lt;/result&gt;"
+          exit
+        fi
+
+        identities=($(security find-identity -v /Library/Keychains/System.keychain | awk '{print $3}' | tr -d '"'))
+        now_seconds=$(date +%s)
+
+        for i in $identities; do
+          if [[ $(security find-certificate -c "$i" | grep issu | awk '{print $3, $4, $5, $6, $7}' | tr -d '"') == *"JSS BUILT-IN CERTIFICATE AUTHORITY"* ]]; then
+            expiry=$(security find-certificate -c "$i" -p | openssl x509 -noout -enddate | cut -f2 -d"=")
+            date_seconds=$(date -j -f "%b %d %T %Y %Z" "$expiry" +%s)
+            if (( date_seconds &gt; now_seconds )); then
+              identityCert=Pass
+              break
+            else
+              identityCert=Expired
+            fi
+          fi
+        done
+
+        if [[ $identityCert == "Expired" ]]; then
+          echo "&lt;result&gt;2000-01-01 00:00:04&lt;/result&gt;"
+          exit
+        elif [[ -z $identityCert ]]; then
+          echo "&lt;result&gt;2000-01-01 00:00:03&lt;/result&gt;"
+          exit
+        fi
+
+        zmodload zsh/parameter
+
+        waitALongPeriodicallyTime() {
+          local -r maxTime=180
+          local now=$(date +%s)
+          local _path=$(mktemp)
+          local priorTime=$now
+
+          for time in ${(@)@}; do
+            (command log show --style=syslog --start "$(date -jf "%s" +"%F %R:%S%z" "$time")" --end "$(date -jf "%s" +"%F %R:%S%z" "$priorTime")" --predicate 'subsystem == "com.apple.ManagedClient" &amp;&amp; (eventMessage CONTAINS[c] "Received HTTP response (200) [Acknowledged" || eventMessage CONTAINS[c] "Received HTTP response (200) [NotNow")' | tail -1 | cut -d '.' -f 1 &gt;$_path) &gt;/dev/null 2&gt;&amp;1 &amp;
+            local jobId=$!
+            local timeSpent=0
+
+            while (( $#jobstates &gt; 0 )); do
+              if (( $timeSpent &gt; $maxTime )); then
+                cat /dev/null &gt;$_path
+                pkill -9 -P $jobId
+                kill -9 $jobId
+                priorTime=$time
+                break
+              fi
+              sleep 1
+              timeSpent=$(( $timeSpent + 1 ))
+            done
+
+            local output=$(cat $_path)
+            if [[ -n "${output}" ]] &amp;&amp; date -jf "%Y-%m-%d %H:%M:%S" "$output" +%s &amp;&gt;/dev/null; then
+              echo $output
+              break
+            elif [[ -n "${output}" ]]; then
+              cat /dev/null &gt;$_path
+            fi
+            priorTime=$time
+          done
+          rm $_path &amp;&gt;/dev/null
+        }
+
+        now=$(date +%s)
+        delay_1=$(( $now - (3600 * 3) ))
+        delay_2=$(( $now - (3600 * 16) ))
+        delay_3=$(( $now - (3600 * 24 * 1) ))
+        delay_4=$(( $now - (3600 * 24 * 3) ))
+        delay_5=$(( $now - (3600 * 24 * 14) ))
+
+        mdmSuccessfulCommunication=$(waitALongPeriodicallyTime $delay_1 $delay_2 $delay_3 $delay_4 $delay_5)
+
+        if ! date -jf "%Y-%m-%d %H:%M:%S" "$mdmSuccessfulCommunication" +%s &amp;&gt;/dev/null; then
+          mdmSuccessfulCommunication=$(defaults read "/Library/Application Support/Mann/Timers/com.mann.cis.mdmapns.plist" LastConnected) 2&gt;/dev/null
+        fi
+
+        if date -jf "%Y-%m-%d %H:%M:%S" "$mdmSuccessfulCommunication" +%s &amp;&gt;/dev/null; then
+          echo "&lt;result&gt;$mdmSuccessfulCommunication&lt;/result&gt;"
+          mkdir -p "/Library/Application Support/Mann/Timers"
+          defaults write "/Library/Application Support/Mann/Timers/com.mann.cis.mdmapns.plist" LastConnected "$mdmSuccessfulCommunication"
+          exit
+        fi
+
+        profileInstallDate=$(profiles list -verbose | grep installationDate | grep _computerlevel | sort | tail -n1 | cut -d ":" -f3- | xargs | cut -d ' ' -f1-2)
+        if date -jf "%Y-%m-%d %H:%M:%S" "$profileInstallDate" +%s &amp;&gt;/dev/null; then
+          echo "&lt;result&gt;$profileInstallDate&lt;/result&gt;"
+        else
+          echo "&lt;result&gt;2000-01-01 00:00:01&lt;/result&gt;"
+        fi</script>
+    </input_type>
+    <inventory_display>Extension Attributes</inventory_display>
+    <recon_display>Extension Attributes</recon_display>
+  </computer_extension_attribute>
