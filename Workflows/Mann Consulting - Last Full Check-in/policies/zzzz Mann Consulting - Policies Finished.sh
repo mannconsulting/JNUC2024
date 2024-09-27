@@ -1,0 +1,1 @@
+echo $(date "+%Y-%m-%d %k:%M:%S") > "/Library/Application Support/JAMF/Last_Full_Policy_Run"
