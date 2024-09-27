@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
   <computer_extension_attribute>
-    <name>CIS macOS Audit Software Inventory - Inventory Update Verified</name>
+    <name>Mann Consulting - Last Full Inventory</name>
     <enabled>true</enabled>
     <description>This script is part of Mann Consulting's Jamf Pro Workflows and has been distributed to the public as part of our JNUC 2024 presentation. It is freely available for use by the community under the condition that it is provided “as is,” without any form of support, warranty, or guarantee of functionality, security, or fitness for any specific purpose. Mann Consulting disclaims any and all liability for any damages, losses, or legal claims arising from the use, misuse, or inability to use this script. Users assume full responsibility for testing, deploying, and managing this script in their own environments. For updates or support options, please visit https://mann.com/jamf or contact us at support@mann.com.</description>
     <data_type>date</data_type>
