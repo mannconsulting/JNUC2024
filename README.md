@@ -4,6 +4,8 @@ This repository includes all the workflows that we presented during our session 
 ## Check-in Failure
 The Jamf built in Last Check-in field is one of the few ways do identify if a computer is active. If the jamf binary or LaunchDaemon is removed or tampered with Last Check-in will no longer update making it seem as if the device is offline. Leveraging a blank configuration profile we're able to test if a computer that is supposedly offline is still receiving MDM commands. If we detect the configuration profile actually installs we can use the Jamf Pro API to push a management framework refresh to the device to re-install and repair the jamf binary and LaunchDaemon.
 
+To automate repairing use the script `Check-in Failure API Fix.sh` which will redeploy the Jamf management framework for all eligible computers.
+
 ## Last Full Check-in
 The Jamf built in Last Check-in field shows the time when the last check-in process started but doesn't indicate if it finished. This workflow validates the last time a computer not only checked in but also completed all policies scoped to it. This allows you to validate if there are issues with some policies or the check-in process in general.
 
