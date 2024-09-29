@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <computer_extension_attribute>
+    <name>Mann Consulting - Employee Is Active</name>
+    <enabled>true</enabled>
+    <description>This script is part of Mann Consulting's Jamf Pro Workflows and has been distributed to the public as part of our JNUC 2024 presentation. It is freely available for use by the community under the condition that it is provided “as is,” without any form of support, warranty, or guarantee of functionality, security, or fitness for any specific purpose. Mann Consulting disclaims any and all liability for any damages, losses, or legal claims arising from the use, misuse, or inability to use this script. Users assume full responsibility for testing, deploying, and managing this script in their own environments. For updates or support options, please visit https://mann.com/jamf or contact us at support@mann.com.</description>
+    <data_type>integer</data_type>
+    <input_type>
+      <type>script</type>
+      <platform>Mac</platform>
+      <script>#!/bin/zsh
+        ###############################################################################
+        # Name:     Mann Consulting - Employee Is Active
+        # Creator:  Mann Consulting
+        # Summary:  Extension Attribute to detect if the Employee is activly using the computer
+        ##
+        # Usage:    Install as a integer based Extension Attribute
+        #
+        # Note:     This script is part of Mann Consulting's Jamf Pro Workflows subscription and is only
+        #           authorized for use for current subscribers.  It has been distributed to the public as part of our JNUC 2024 session.
+        #           This script and workflow comes with no support, warranty or guarantee. Use at your own risk, Mann Consulting is
+        #           not liable for any issues that are caused by this script.
+        #
+        #           If you'd like updates or support sign up at https://mann.com/jamf or email support@mann.com for more details
+        ###############################################################################
+
+        lockEpochTime=$(ioreg -n Root -d1 -a | grep -A1 CGSSessionScreenLockedTime | tail -1 | cut -d "&gt;" -f 2 | cut -d "&lt;" -f 1)
+        currentEpoch=$(date +"%s")
+        time_diff=$(( currentEpoch - lockEpochTime ))
+        days_diff=$(( time_diff / 86400 ))
+
+        if [[ -z $lockEpochTime ]]; then
+          echo "&lt;result&gt;0&lt;/result&gt;"
+        else
+          echo "&lt;result&gt;$days_diff&lt;/result&gt;"
+        fi
+        </script>
+    </input_type>
+    <inventory_display>Extension Attributes</inventory_display>
+    <recon_display>Extension Attributes</recon_display>
+  </computer_extension_attribute>
