@@ -6,6 +6,16 @@ The Jamf built in Last Check-in field is one of the few ways do identify if a co
 
 To automate repairing use the script `Check-in Failure API Fix.sh` which will redeploy the Jamf management framework for all eligible computers.
 
+## Employee Is Active
+While a computer may be checking in the employee may not actively be using the computer. If the computer is in power nap inventory may submit but some MDM commands and configuration profiles will not install. Additionally any updates that require input from the employee may not run properly. This workflow detects how long the computer has been locked, organizations should consider recovering unused systems.
+
+## Mann Jamf Client Communications Doctor
+Jamf Pro doesn’t have guard rails in place for when it runs policies or inventory updates to ensure communication remains stable. One primary concern is the jamf process doesn’t place time limits on how long a policy or extension attribute is allowed to run. In addition to this, all tasks are run sequentially.
+
+If a single process hangs this will cause all other pending tasks to wait indefinitely for it to complete, which may never happen. In the Jamf Pro Server console this may reflect computers not properly having the inventory updated or will only run some policies on an infrequent basis.  Additionally, Jamf may still list the computer as “checking in,” however there may usually be little to no policy logs.
+
+You can Find the Mann Jamf Client Communications Doctor at https://github.com/mannconsulting/Jamf-Client-Communications-Doctor
+
 ## Last Full Check-in
 The Jamf built in Last Check-in field shows the time when the last check-in process started but doesn't indicate if it finished. This workflow validates the last time a computer not only checked in but also completed all policies scoped to it. This allows you to validate if there are issues with some policies or the check-in process in general.
 
