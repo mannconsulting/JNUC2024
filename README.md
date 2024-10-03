@@ -45,4 +45,4 @@ Scripts for computer extension attributes are includes in the same folder with a
 This is a small sampling of our full workflows suite. If you'd like a demo of our Compliance Report and a full list of workflows we automate please come see us at https://mann.com/jamf
 
 ## Help
-We provide support for these and other workflows for our customers, if you'd like assistance please consider a demo of our full Mann Jamf Workflows suite by visiting https://mann.com/jamf.
+We provide support for these and other workflows for our customers, if you'd like assistance please consider a demo of our full Mann Jamf Workflows suite by visiting https://mann.com/jamf. If something isn't actually working do feel free to open a PR in GitHub, these are simplified versions of our internal scripts and errors may be introduced during the process of removing other logging functions.
