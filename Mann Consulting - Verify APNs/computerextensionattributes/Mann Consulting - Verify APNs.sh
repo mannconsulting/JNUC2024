@@ -30,7 +30,7 @@ identities=($(security find-identity -v /Library/Keychains/System.keychain | awk
 now_seconds=$(date +%s)
 
 for i in $identities; do
-	if [[ $(security find-certificate -c "$i" | grep issu | awk '{print $3, $4, $5, $6, $7}' | tr -d '"') == *"JSS BUILT-IN CERTIFICATE AUTHORITY"* ]]; then
+	if [[ $(security find-certificate -c "$i" | grep issu | tr -d '"') == *"JSS BUILT-IN CERTIFICATE AUTHORITY"* ]]; then
 		expiry=$(security find-certificate -c "$i" -p | openssl x509 -noout -enddate | cut -f2 -d"=")
     date_seconds=$(date -j -f "%b %d %T %Y %Z" "$expiry" +%s)
     if (( date_seconds > now_seconds )); then
