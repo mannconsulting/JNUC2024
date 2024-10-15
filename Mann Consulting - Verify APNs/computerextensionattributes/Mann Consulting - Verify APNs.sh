@@ -31,7 +31,7 @@ now_seconds=$(date +%s)
 
 for i in $identities; do
 	if [[ $(security find-certificate -c "$i" | grep issu | tr -d '"') == *"JSS BUILT-IN CERTIFICATE AUTHORITY"* ]]; then
-		expiry=$(security find-certificate -c "$i" -p | openssl x509 -noout -enddate | cut -f2 -d"=")
+	  expiry=$(security find-certificate -c "$i" -p | openssl x509 -noout -enddate | cut -f2 -d"=")
     date_seconds=$(date -j -f "%b %d %T %Y %Z" "$expiry" +%s)
     if (( date_seconds > now_seconds )); then
       identityCert=Pass
