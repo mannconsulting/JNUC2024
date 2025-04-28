@@ -1,5 +1,5 @@
 # Welcome
-This repository includes all the workflows that we presented during our session "Flawless MDM Communication" at the Jamf Nation User Conference 2024.
+This repository includes all the workflows that we presented during our session "Flawless MDM Communication" at the Jamf Nation User Conference 2024. Watch a video of our sessions at https://www.youtube.com/watch?v=89xfqJHt5Bg
 
 ## Check-in Failure
 The Jamf built in Last Check-in field is one of the few ways do identify if a computer is active. If the jamf binary or LaunchDaemon is removed or tampered with Last Check-in will no longer update making it seem as if the device is offline. Leveraging a blank configuration profile we're able to test if a computer that is supposedly offline is still receiving MDM commands. If we detect the configuration profile actually installs we can use the Jamf Pro API to push a management framework refresh to the device to re-install and repair the jamf binary and LaunchDaemon.
