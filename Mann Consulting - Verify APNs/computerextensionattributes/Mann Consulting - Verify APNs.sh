@@ -28,11 +28,17 @@ fi
 
 identities=($(security find-identity -v /Library/Keychains/System.keychain | awk '{print $3}' | tr -d '"'))
 now_seconds=$(date +%s)
-
 for i in $identities; do
-	if [[ $(security find-certificate -c "$i" | grep issu | tr -d '"') == *"JSS BUILT-IN CERTIFICATE AUTHORITY"* ]]; then
-	  expiry=$(security find-certificate -c "$i" -p | openssl x509 -noout -enddate | cut -f2 -d"=")
+  certificate=$(security find-certificate -c "$i")
+  issuer=$(echo ${certificate} | grep issu)
+	if [[ ${issuer:l} == *"jss built-in certificate authority"* ]]; then
+		expiry=$(security find-certificate -c "$i" -p | openssl x509 -noout -enddate | cut -f2 -d"=")
     date_seconds=$(date -j -f "%b %d %T %Y %Z" "$expiry" +%s)
+
+    if (( (now_seconds + (21 * 3600 * 24)) >= date_seconds )) && ! (( $now_seconds <= $date_seconds )); then
+      printlog "Identity Certificate is going to expire within 21 days or fewer" ERROR
+    fi
+
     if (( date_seconds > now_seconds )); then
       identityCert=Pass
       break
@@ -46,8 +52,11 @@ if [[ $identityCert == "Expired" ]]; then
 	echo "<result>2000-01-01 00:00:04</result>"
   exit
 elif [[ -z $identityCert ]]; then
-  echo "<result>2000-01-01 00:00:03</result>"
-  exit
+  missingIdentityCount=$(command log show --style=syslog --last 2d --predicate 'subsystem == "com.apple.ManagedClient" && eventMessage CONTAINS[c] "The specified item is no longer valid. It may have been deleted from the keychain."' | grep -c " It may have been deleted from the keychain.")
+  if [[ $missingIdentityCount -gt 0 ]]; then
+    echo "<result>2000-01-01 00:00:03</result>"
+    exit
+  fi
 fi
 
 zmodload zsh/parameter
